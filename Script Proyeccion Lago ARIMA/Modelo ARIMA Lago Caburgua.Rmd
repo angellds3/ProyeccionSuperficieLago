@@ -1,0 +1,796 @@
+---
+title: "Código para la creación del modelo Arima"
+author: "Raúl Frugone Zaror, Angel Llanos Herrera y Felipe Neira Rojas"
+date: "2024-09-12"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: '2'
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    toc_collapsed: false
+    toc_title: Secciones
+    navbar:
+      title: Método
+      left:
+      - text: Datos y Funciones a utilizar
+        href: '#1'
+      - text: Modelo con el 50% de los datos para predecir el 60%
+        href: '#2'
+      - text: Modelo con el 60% de los datos para predecir el 70%
+        href: '#3'
+      - text: Modelo con el 70% de los datos para predecir el 80%
+        href: '#4'
+      - text: Modelo con el 80% de los datos para predecir el 90%
+        href: '#5'
+      - text: Modelo con el 70% de los datos para predecir el 100%
+        href: '#6'
+      - text: Modelo con el 80% de los datos para predecir el 100%
+        href: '#7'
+      - text: Modelo predictivo con la reconstrucción del dique en 2026
+        href: '#8'
+      - text: Modelo predictivo sin una reinstalación del dique
+        href: '#9'
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+
+
+
+
+El presente documento tiene como objetivo el desarrollo de un modelo predictivo con base en el metodo ARIMA para prever variaciones en la superficie de un lago afectada por condiciones climaticas, humanas y geograficas. Utilizando datos historicos de precipitaciones, temperaturas maximas y la presencia o ausencia de un dique desde el año 1984 hasta 2022.
+
+#  Librerias, datos y funciones a utilizar {#1}
+
+## Librerias
+
+Las funciones utilizadas requieren de la libreria "forecast"
+
+\small
+```{r, warning=FALSE}
+# Instalar y cargar el paquete forecast si no está instalado
+if (!require(forecast)){install.packages("forecast")}
+library(forecast)
+```
+
+
+## Funciones 
+
+
+### Escalar precipitaciones
+se define una función escalar_precipitaciones que normaliza los datos de precipitaciones. Este método de normalización permite centrar los datos cercano a cero dismuyendo la dispersión.
+
+\small
+```{r}
+# Escalar precipitaciones
+escalar_precipitaciones <- function(precipitaciones){
+  resultado <- (precipitaciones - mean(precipitaciones)) / sd(precipitaciones)
+  return(resultado)
+  }
+
+```
+
+### Ajustar ARIMA y realizar predicción
+
+Se define la funcion ajustar_y_predecir que ajusta un modelo ARIMA. Necesita de la serie temporal y_entrenamiento, las variables independientes xreg_entrenamiento y la prediccion de estos xreg_predicción, el orden del modelo ARIMA(p,q,d) orden, y el numero de periodos a predecir h_periodos.
+
+\small
+```{r}
+# Función para ajustar modelo ARIMA y hacer predicción
+ajustar_y_predecir <- function(y_entrenamiento, 
+                               xreg_entrenamiento, 
+                               xreg_prediccion, orden, 
+                               h_periodos){
+  
+  modelo <- Arima(y_entrenamiento, 
+                  order = orden, 
+                  xreg = xreg_entrenamiento)
+  
+  resultado_prediccion <- forecast(modelo, 
+                                   xreg = xreg_prediccion, 
+                                   h = h_periodos)
+  return(resultado_prediccion)
+}
+```
+
+
+
+
+## Datos
+
+Se importan los datos mediante una base de datos de SPSS (.sav)
+
+\small
+```{r}
+#Ingresar datos, 
+library(haven)
+SPSS_Registros_Anuales_5_ <- read_sav("C:/Users/angel/Downloads/SPSS Registros Anuales Lago Caburgua.sav")
+
+
+data <- SPSS_Registros_Anuales_5_
+
+
+# Datos hasta 2022
+dique_1984_2022 <- data$DIQUE[1:39]
+superficie_1984_2022 <- data$Superficie_Aproximada30deDiciembre[1:39]
+max_temperatura_1984_2022 <- data$TemperaturaMáximapromedioanual[1:39]
+precipitaciones_1984_2022 <- data$Precipitacionesanuales[1:39]
+
+
+
+```
+
+Para simplificar las propiedades al usar modelos ARIMA es necesario comprobar estacionariedad en cada una de las series de tiempo.
+
+Comprobamos la existencia de estacionariedad con Test de raices unitarias.
+
+Prueba de Dickey Fuller
+
+$H_0$: La serie temporal tiene una raíz unitaria (no estacionaria).
+$H_1$: La serie temporal no tiene raíz unitaria (estacionaria).
+
+\small
+```{r, warning=FALSE}
+
+if (!require(tseries)){install.packages("tseries")}
+library(tseries)
+
+adf.test(superficie_1984_2022,k=0) # Test de Dickey Fuller para superficie
+
+adf.test(max_temperatura_1984_2022,k=0) # Test de Dickey Fuller para temperatura maxima
+
+adf.test(precipitaciones_1984_2022, k=0) # Test de Dickey Fuller para precipitaciones
+
+```
+Las tres series (superficie, temperatura maxima y precipitaciones) presentan suficiente evidencia estadistica para rechazar la hipotesis nula (no estacionariedad). Por lo tanto, las series de superficie, temperatura maxima y precipitaciones son estacionarias. Las propiedades estadisticas (como media y varianza) de las series no cambian a lo largo del tiempo.
+
+
+
+#  Modelo con el 50% de los datos para predecir hasta el 60% {#2}
+
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+# Datos hasta 2004
+superficie_1984_2004 <- data$Superficie_Aproximada30deDiciembre[1:21]
+max_temperatura_1984_2004 <- data$TemperaturaMáximapromedioanual[1:21]
+precipitaciones_1984_2004 <- data$Precipitacionesanuales[1:21]
+superficie_1984_2008<-data$Superficie_Aproximada30deDiciembre[1:25]
+
+# Datos predictores para predicciones futuras (2004-2008)
+max_temperatura_2005_2008 <- data$TemperaturaMáximapromedioanual[22:25]
+precipitaciones_2005_2008 <- data$Precipitacionesanuales[22:25]
+
+
+precipitaciones_1984_2004_escalado <- escalar_precipitaciones(precipitaciones_1984_2004)
+precipitaciones_2005_2008_escalado <- escalar_precipitaciones(precipitaciones_2005_2008)
+
+
+```
+
+## Predicción
+
+\small
+```{r, warning=FALSE}
+
+# Predicciones 2004-2008
+predictores_1984_2004 <- cbind(
+  precipitaciones_1984_2004_escalado,
+  max_temperatura_1984_2004)
+
+predictores_2005_2008 <- cbind(
+  precipitaciones_2005_2008_escalado, 
+  max_temperatura_2005_2008)
+
+predicciones_2005_2008 <- ajustar_y_predecir(
+  superficie_1984_2004, 
+  predictores_1984_2004, 
+  predictores_2005_2008,
+  orden = c(3,0,1),
+  h_periodos = 4)
+
+plot(
+  predicciones_2005_2008, 
+  main = "Comparación de Predicciones y Datos Reales 2004-2008",
+  flty = 1, 
+  lwd = 2)
+
+# Añadir los datos reales al gráfico
+# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
+# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
+points(seq_along(superficie_1984_2008) , superficie_1984_2008, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2008) , superficie_1984_2008, col = "red")
+
+# Opcional: Añadir una leyenda
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+
+
+```
+
+## Test de hipotesis para los errores
+Se realiza el test de Ljung-Box sobre los errores de predicción del modelo ARIMA.
+
+$H_0$: Los residuos del modelo no tienen autocorrelación significativa; es decir, los errores son ruido blanco.
+
+$H_1$: Los residuos del modelo tienen autocorrelación significativa; es decir, los errores no son ruido blanco.
+
+
+\small
+```{r}
+#Error
+
+Box.test(predicciones_2005_2008, type = "Ljung-Box") 
+```
+En este caso, el valor-p dado por la prueba de hipotesis (0.059) es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+
+ En este caso, el valor p obtenido (0.059) es suficiente para concluir que los errores no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+#  Modelo con el 60% de los datos para predecir hasta el 70% {#3}
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+# Datos hasta 2008
+superficie_1984_2008<-data$Superficie_Aproximada30deDiciembre[1:25]
+max_temperatura_1984_2008<-data$TemperaturaMáximapromedioanual[1:25]
+precipitaciones_1984_2008 <- data$Precipitacionesanuales[1:25]
+superficie_1984_2012<-data$Superficie_Aproximada30deDiciembre[1:29]
+
+# Datos predictores para predicciones futuras (2008-2012)
+max_temperatura_2009_2012 <- data$TemperaturaMáximapromedioanual[26:29]
+precipitaciones_2009_2012 <- data$Precipitacionesanuales[26:29]
+
+
+precipitaciones_1984_2008_escalado <- escalar_precipitaciones(precipitaciones_1984_2008)
+
+precipitaciones_2009_2012_escalado <- escalar_precipitaciones(precipitaciones_2009_2012)
+
+```
+
+## Predicción
+
+\small
+
+```{r, warning=FALSE}
+
+
+# Predicciones 2008-2012
+predictores_1984_2008 <- cbind(
+  precipitaciones_1984_2008_escalado, 
+  max_temperatura_1984_2008)
+
+predictores_2009_2012 <- cbind(
+  precipitaciones_2009_2012_escalado, 
+  max_temperatura_2009_2012)
+
+predicciones_2009_2012 <- ajustar_y_predecir(
+  superficie_1984_2008, 
+  predictores_1984_2008, 
+  predictores_2009_2012, 
+  orden = c(3,0,1), 
+  h_periodos = 4)
+
+plot(
+  predicciones_2009_2012, 
+  main = "Comparación de Predicciones y Datos Reales 2008-2012",
+  flty = 1, 
+  lwd = 2)
+
+# Añadir los datos reales al gráfico
+# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
+# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
+points(seq_along(superficie_1984_2012) , superficie_1984_2012, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2012) , superficie_1984_2012, col = "red")
+
+# Opcional: Añadir una leyenda
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+
+
+```
+
+## Test de hipotesis para los errores
+
+$H_0$: Los residuos del modelo no tienen autocorrelación significativa; es decir, los errores son ruido blanco.
+
+$H_1$: Los residuos del modelo tienen autocorrelación significativa; es decir, los errores no son ruido blanco.
+
+\small
+```{r}
+
+Box.test(predicciones_2009_2012, type = "Ljung-Box")
+
+
+```
+
+En este caso, el valor-p dado por la prueba de hipotesis (0.8887) es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+
+
+
+
+#  Modelo con el 70% de los datos para predecir hasta el 80% {#4}
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+
+# Datos hasta 2012
+superficie_1984_2012<-data$Superficie_Aproximada30deDiciembre[1:29]
+max_temperatura_1984_2012 <- data$TemperaturaMáximapromedioanual[1:29]
+precipitaciones_1984_2012 <- data$Precipitacionesanuales[1:29]
+superficie_1984_2016 <- data$Superficie_Aproximada30deDiciembre[1:33]
+
+# Datos predictores para predicciones futuras (2012-2016)
+max_temperatura_2013_2016 <- data$TemperaturaMáximapromedioanual[30:33]
+precipitaciones_2013_2016 <- data$Precipitacionesanuales[30:33]
+
+precipitaciones_1984_2012_escalado <- escalar_precipitaciones(precipitaciones_1984_2012)
+precipitaciones_2013_2016_escalado <- escalar_precipitaciones(precipitaciones_2013_2016)
+
+```
+
+## Predicción
+
+\small
+```{r, warning=FALSE}
+
+
+# Predicciones 2012-2016
+predictores_1984_2012 <- cbind(
+  precipitaciones_1984_2012_escalado, 
+  max_temperatura_1984_2012)
+
+predictores_2013_2016 <- cbind(
+  precipitaciones_2013_2016_escalado, 
+  max_temperatura_2013_2016)
+
+predicciones_2013_2016 <- ajustar_y_predecir(
+  superficie_1984_2012, 
+  predictores_1984_2012, 
+  predictores_2013_2016, 
+  orden = c(3,0,1),
+  h_periodos = 4)
+
+#Comparar 70% de los datos y prediccion de los datos del 70-80% y los datos reales
+plot(
+  predicciones_2013_2016, 
+  main = "Comparación de Predicciones y Datos Reales 2012-2016",
+  flty = 1, 
+  lwd = 2)
+
+# Añadir los datos reales al gráfico
+# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
+# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
+points(seq_along(superficie_1984_2016) , superficie_1984_2016, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2016) , superficie_1984_2016, col = "red")
+
+# Opcional: Añadir una leyenda
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+
+
+```
+
+## Test de hipotesis para los errores
+
+\small
+```{r}
+Box.test(predicciones_2013_2016, type = "Ljung-Box")  
+```
+
+En este caso, el valor-p dado por la prueba de hipotesis (0.618) es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+
+
+#  Modelo con el 80% de los datos para predecir hasta el 90% {#5}
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+
+
+# Datos hasta 2016
+superficie_1984_2016 <- data$Superficie_Aproximada30deDiciembre[1:33]
+max_temperatura_1984_2016 <- data$TemperaturaMáximapromedioanual[1:33]
+precipitaciones_1984_2016 <- data$Precipitacionesanuales[1:33]
+
+# Datos predictores para predicciones futuras (2016-2020)
+superficie_1984_2020<-data$Superficie_Aproximada30deDiciembre[1:37]
+max_temperatura_2017_2020 <- data$TemperaturaMáximapromedioanual[34:37]
+precipitaciones_2017_2020 <- data$Precipitacionesanuales[34:37]
+
+precipitaciones_1984_2016_escalado <- escalar_precipitaciones(precipitaciones_1984_2016)
+precipitaciones_2017_2020_escalado <- escalar_precipitaciones(precipitaciones_2017_2020)
+
+
+```
+
+## Predicción
+
+\small
+```{r, warning=FALSE}
+
+
+# Predicciones 2016-2020
+predictores_1984_2016 <- cbind(
+  precipitaciones_1984_2016_escalado,
+  max_temperatura_1984_2016)
+
+predictores_2017_2020 <- cbind(
+  precipitaciones_2017_2020_escalado,
+  max_temperatura_2017_2020)
+
+predicciones_2017_2020 <- ajustar_y_predecir(
+  superficie_1984_2016, 
+  predictores_1984_2016, 
+  predictores_2017_2020, 
+  orden = c(3,0,1), 
+  h_periodos = 4)
+
+plot(
+  predicciones_2017_2020, 
+  main = "Comparación de Predicciones y Datos Reales 2016-2020",
+  flty = 1, 
+  lwd = 2)
+ 
+
+# Añadir los datos reales al gráfico
+# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
+# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
+points(seq_along(superficie_1984_2020) , superficie_1984_2020, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2020) , superficie_1984_2020, col = "red")
+
+# Opcional: Añadir una leyenda
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+
+```
+
+## Test de hipotesis para los errores
+
+$H_0$: Los residuos del modelo no tienen autocorrelación significativa; es decir, los errores son ruido blanco.
+
+$H_1$: Los residuos del modelo tienen autocorrelación significativa; es decir, los errores no son ruido blanco.
+
+\small
+```{r}
+Box.test(predicciones_2017_2020, type = "Ljung-Box") 
+
+
+```
+
+En este caso, el valor-p dado por la prueba de hipotesis (0.4434) es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+
+#  Modelo con el 70% de los datos para predecir el 100% {#6}
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+#Datos para grafico 70/30
+dique_1984_2012<- data$DIQUE[1:29]
+dique_2013_2022<- data$DIQUE[30:39]
+precipitaciones_2013_2022<-data$Precipitacionesanuales[30:39]
+max_temperatura_2013_2022<-data$TemperaturaMáximapromedioanual[30:39]
+precipitaciones_1984_2012<-data$Precipitacionesanuales[1:29]
+
+precipitaciones_1984_2012_escalado <- escalar_precipitaciones(precipitaciones_1984_2012)
+
+precipitaciones_2013_2022_escalado<-escalar_precipitaciones(precipitaciones_2013_2022)
+
+```
+## Predicción}
+
+\small
+```{r, warning=FALSE}
+
+#Modelo 70/30
+
+predictores_1984_2012 <- cbind(
+  precipitaciones_1984_2012_escalado,
+  max_temperatura_1984_2012,
+  dique_1984_2012)
+
+predictores_2013_2022 <- cbind(
+  precipitaciones_2013_2022_escalado, 
+  max_temperatura_2013_2022, 
+  dique_2013_2022)
+
+predicciones_2013_2022 <- ajustar_y_predecir(
+  superficie_1984_2012, 
+  predictores_1984_2012, 
+  predictores_2013_2022, 
+  orden = c(3,0,1),
+  h_periodos = 10)
+
+plot(
+  predicciones_2013_2022, 
+  main = "Comparación de Predicciones y Datos Reales \n 2012-2022 (70%-30%)",
+  flty = 1, 
+  lwd = 2)
+
+
+# Añadir los datos reales al gráfico
+# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
+# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
+points(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red")
+
+# Opcional: Añadir una leyenda
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+
+```
+
+## Test de hipotesis para los errores
+
+$H_0$: Los residuos del modelo no tienen autocorrelación significativa; es decir, los errores son ruido blanco.
+
+$H_1$: Los residuos del modelo tienen autocorrelación significativa; es decir, los errores no son ruido blanco.
+
+\small
+```{r}
+
+Box.test(predicciones_2013_2022, type = "Ljung-Box") 
+
+```
+En este caso, el valor-p dado por la prueba de hipotesis (0.8713) es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+
+
+#  Modelo con el 80% de los datos para predecir el 100% {#7}
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+#Datos para 80/20
+
+dique_1984_2016<- data$DIQUE[1:33]
+dique_2017_2022<- data$DIQUE[34:39]
+precipitaciones_2017_2022<- data$Precipitacionesanuales[34:39]
+max_temperatura_2017_2022<-data$TemperaturaMáximapromedioanual[34:39]
+
+precipitaciones_1984_2016_escalado <- escalar_precipitaciones(precipitaciones_1984_2016)
+precipitaciones_2017_2022_escalado<-escalar_precipitaciones(precipitaciones_2017_2022)
+```
+
+## Predicción
+
+\small
+```{r, warning=FALSE}
+#Modelo 80-20
+
+
+predictores_1984_2016 <- cbind(
+  precipitaciones_1984_2016_escalado,
+  max_temperatura_1984_2016,dique_1984_2016)
+
+predictores_2017_2022 <- cbind(
+  precipitaciones_2017_2022_escalado, 
+  max_temperatura_2017_2022, 
+  dique_2017_2022)
+
+predicciones_2017_2022 <- ajustar_y_predecir(
+  superficie_1984_2016, 
+  predictores_1984_2016, 
+  predictores_2017_2022, 
+  orden = c(3,0,1), 
+  h_periodos = 6)
+
+plot(
+  predicciones_2017_2022, 
+  main = "Comparación de Predicciones y Datos Reales \n 2016-2022 (80%-20%)",
+  flty = 1, 
+  lwd = 2)
+
+
+# Añadir los datos reales al gráfico
+# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
+# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
+points(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red")
+
+# Opcional: Añadir una leyenda
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+
+
+
+```
+
+## Test de hipotesis para los errores
+
+$H_0$: Los residuos del modelo no tienen autocorrelación significativa; es decir, los errores son ruido blanco.
+
+$H_1$: Los residuos del modelo tienen autocorrelación significativa; es decir, los errores no son ruido blanco.
+
+
+\small
+```{r}
+Box.test(predicciones_2017_2022, type = "Ljung-Box")
+```
+En este caso, el valor-p dado por la prueba de hipotesis (0.8887) es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+
+#  Modelo predictivo con la reconstrucción del dique en 2026 {#8}
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+
+# Datos predictores para predicciones futuras (2023-2030)
+max_temperatura_2023_2030 <- data$Pronosticado_TemperaturaMáximapromedioanual_Modelo_1[40:47]
+
+precipitaciones_2023_2030 <- data$Pronosticado_Precipitacionesanuales_Modelo_1[40:47]
+
+dique_2023_2030_CD <- data$DIQUE[40:47]
+
+precipitaciones_1984_2022_escalado<-escalar_precipitaciones(precipitaciones_1984_2022)
+precipitaciones_2023_2030_escalado <- escalar_precipitaciones(precipitaciones_2023_2030)
+
+```
+
+
+## Predicción
+
+\small
+```{r, warning=FALSE}
+# Predicciones 2023-2030
+predictores_1984_2022_CD <- cbind(
+  precipitaciones_1984_2022_escalado, 
+  max_temperatura_1984_2022, 
+  dique_1984_2022 )
+
+predictores_2023_2030_CD<- cbind(
+  precipitaciones_2023_2030_escalado,
+  max_temperatura_2023_2030,
+  dique_2023_2030_CD)
+
+
+predicciones_2023_2030_CD <- ajustar_y_predecir(
+  superficie_1984_2022,
+  predictores_1984_2022_CD,
+  predictores_2023_2030_CD, 
+  orden = c(3,0,1),
+  h_periodos = 8)
+
+summary(predicciones_2023_2030_CD)
+
+
+# Extraer los valores predichos
+
+prediccion_temperatura_2030_CD <- predicciones_2023_2030_CD$mean
+
+
+# Graficar la predicción
+plot(
+  predicciones_2023_2030_CD, 
+  main = "Predicción Superficie hasta 2030 Con Dique", 
+  flty = 1, 
+  lwd = 2)
+
+legend("topleft", legend = c("Predicciones"), col = c("black"), lty = c(1), pch = c(NA))
+
+# Imprimir los valores de la predicción
+print(prediccion_temperatura_2030_CD)
+
+```
+
+
+## Test de hipotesis para los errores
+
+$H_0$: Los residuos del modelo no tienen autocorrelación significativa; es decir, los errores son ruido blanco.
+
+$H_1$: Los residuos del modelo tienen autocorrelación significativa; es decir, los errores no son ruido blanco.
+
+\small
+```{r}
+
+Box.test(predicciones_2023_2030_CD, type = "Ljung-Box")
+
+```
+
+En este caso, el valor-p dado por la prueba de hipotesis (0.1863) es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo no tienen autocorrelación significativa, lo que indica un buen ajuste del modelo.
+
+
+
+
+#  Modelo predictivo sin una reinstalación del dique {#9}
+
+
+## Filtrar datos y escalar precipitaciones
+
+\small
+```{r}
+# Datos predictores para predicciones futuras (2023-2030)
+max_temperatura_2023_2030 <- data$Pronosticado_TemperaturaMáximapromedioanual_Modelo_1[40:47]
+
+precipitaciones_2023_2030 <- data$Pronosticado_Precipitacionesanuales_Modelo_1[40:47]
+
+
+dique_2023_2030_SD<-c(0,0,0,0,0,0,0,0)
+
+
+precipitaciones_1984_2022_escalado <- escalar_precipitaciones(precipitaciones_1984_2022)
+precipitaciones_2023_2030_escalado <- escalar_precipitaciones(precipitaciones_2023_2030)
+
+```
+
+
+## Predicción
+
+\small
+```{r, warning=FALSE}
+# Predicciones 2023-2030
+predictores_1984_2022_SD <- cbind(
+  precipitaciones_1984_2022_escalado, 
+  max_temperatura_1984_2022, 
+  dique_1984_2022)
+
+predictores_2023_2030_SD<- cbind(
+  precipitaciones_2023_2030_escalado,
+  max_temperatura_2023_2030,
+  dique_2023_2030_SD)
+
+predicciones_2023_2030_SD <- ajustar_y_predecir(
+  superficie_1984_2022, 
+  predictores_1984_2022_SD, 
+  predictores_2023_2030_SD, 
+  orden = c(3,0,1),
+  h_periodos = 8)
+
+summary(predicciones_2023_2030_SD)
+# Extraer los valores predichos
+
+prediccion_temperatura_2030_SD <- predicciones_2023_2030_SD$mean
+
+
+
+# Graficar la predicción
+plot(
+  predicciones_2023_2030_SD, 
+  main = "Predicción Superficie hasta 2030 Sin Dique", 
+  flty = 1, 
+  lwd = 2)
+
+legend("topleft", legend = c("Predicciones"), col = c("black"), lty = c(1), pch = c(NA))
+
+# Imprimir los valores de la predicción
+print(prediccion_temperatura_2030_SD)
+```
+
+
+## Test de hipotesis para los errores
+
+
+$H_0$: Los residuos del modelo no tienen autocorrelación significativa; es decir, los errores son ruido blanco.
+
+$H_1$: Los residuos del modelo tienen autocorrelación significativa; es decir, los errores no son ruido blanco.
+
+\small
+```{r}
+
+Box.test(predicciones_2023_2030_SD, type = "Ljung-Box") 
+
+```
+
+
+En este caso, el valor-p dado por la prueba de hipotesis (0.01621) no es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo tienen autocorrelación significativa, lo que puede indicar que el modelo ARIMA no está capturando la estructura temporal de los datos, quedando dependencia en los residuos. Ahora bien, con base en las pruebas realizadas en el modelo con el 80% para predecir el 100% de los datos, podemos ver un buen ajuste (dentro de los intervalos de confianza establecidos para el 95% de confianza).
+
+
+
