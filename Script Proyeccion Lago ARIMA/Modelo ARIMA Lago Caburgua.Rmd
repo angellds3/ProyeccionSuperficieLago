@@ -195,21 +195,28 @@ predicciones_2005_2008 <- ajustar_y_predecir(
   orden = c(3,0,1),
   h_periodos = 4)
 
+# Gráfico de predicciones
 plot(
   predicciones_2005_2008, 
   main = "Comparación de Predicciones y Datos Reales 2004-2008",
   flty = 1, 
-  lwd = 2)
+  lwd = 2
+)
+
+# Añadir el grid con una línea cada 1 unidad
+grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted", lwd = 0.7,
+     equilogs = TRUE)
 
 # Añadir los datos reales al gráfico
-# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
-# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
-points(seq_along(superficie_1984_2008) , superficie_1984_2008, col = "red", pch = 19)
-lines(seq_along(superficie_1984_2008) , superficie_1984_2008, col = "red")
+points(seq_along(superficie_1984_2008), superficie_1984_2008, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2008), superficie_1984_2008, col = "red")
 
-# Opcional: Añadir una leyenda
+# Añadir una leyenda con tamaño reducido
 legend("topleft", legend = c("Predicciones", "Datos Reales"), 
-       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+       col = c("blue", "red"), lty = c(1, 1), pch = c(NA, 19),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
+
 
 
 ```
@@ -279,21 +286,28 @@ predicciones_2009_2012 <- ajustar_y_predecir(
   orden = c(3,0,1), 
   h_periodos = 4)
 
+# Gráfico de predicciones
 plot(
   predicciones_2009_2012, 
   main = "Comparación de Predicciones y Datos Reales 2008-2012",
   flty = 1, 
-  lwd = 2)
+  lwd = 2
+)
+
+# Añadir el grid con una línea cada 1 unidad
+grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted", lwd = 0.6,
+     equilogs = TRUE)
 
 # Añadir los datos reales al gráfico
-# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
-# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
-points(seq_along(superficie_1984_2012) , superficie_1984_2012, col = "red", pch = 19)
-lines(seq_along(superficie_1984_2012) , superficie_1984_2012, col = "red")
+points(seq_along(superficie_1984_2012), superficie_1984_2012, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2012), superficie_1984_2012, col = "red")
 
-# Opcional: Añadir una leyenda
+# Añadir una leyenda con tamaño reducido
 legend("topleft", legend = c("Predicciones", "Datos Reales"), 
-       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+       col = c("blue", "red"), lty = c(1, 1), pch = c(NA, 19),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
+
 
 
 ```
@@ -362,22 +376,28 @@ predicciones_2013_2016 <- ajustar_y_predecir(
   orden = c(3,0,1),
   h_periodos = 4)
 
-#Comparar 70% de los datos y prediccion de los datos del 70-80% y los datos reales
+
+# Gráfico de predicciones
 plot(
   predicciones_2013_2016, 
   main = "Comparación de Predicciones y Datos Reales 2012-2016",
   flty = 1, 
-  lwd = 2)
+  lwd = 2
+)
+
+# Añadir el grid con una línea cada 1 unidad
+grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted", lwd = 0.6,
+     equilogs = TRUE)
 
 # Añadir los datos reales al gráfico
-# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
-# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
-points(seq_along(superficie_1984_2016) , superficie_1984_2016, col = "red", pch = 19)
-lines(seq_along(superficie_1984_2016) , superficie_1984_2016, col = "red")
+points(seq_along(superficie_1984_2016), superficie_1984_2016, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2016), superficie_1984_2016, col = "red")
 
-# Opcional: Añadir una leyenda
+# Añadir una leyenda con tamaño reducido
 legend("topleft", legend = c("Predicciones", "Datos Reales"), 
-       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+       col = c("blue", "red"), lty = c(1, 1), pch = c(NA, 19),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
 
 
 ```
@@ -439,22 +459,28 @@ predicciones_2017_2020 <- ajustar_y_predecir(
   orden = c(3,0,1), 
   h_periodos = 4)
 
+
+# Gráfico de predicciones
 plot(
   predicciones_2017_2020, 
   main = "Comparación de Predicciones y Datos Reales 2016-2020",
   flty = 1, 
-  lwd = 2)
- 
+  lwd = 2
+)
+
+# Añadir el grid con una línea cada 1 unidad
+grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted", lwd = 0.6,
+     equilogs = TRUE)
 
 # Añadir los datos reales al gráfico
-# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
-# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
-points(seq_along(superficie_1984_2020) , superficie_1984_2020, col = "red", pch = 19)
-lines(seq_along(superficie_1984_2020) , superficie_1984_2020, col = "red")
+points(seq_along(superficie_1984_2020), superficie_1984_2020, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2020), superficie_1984_2020, col = "red")
 
-# Opcional: Añadir una leyenda
+# Añadir una leyenda con tamaño reducido
 legend("topleft", legend = c("Predicciones", "Datos Reales"), 
-       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+       col = c("blue", "red"), lty = c(1, 1), pch = c(NA, 19),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
 
 ```
 
@@ -492,7 +518,7 @@ precipitaciones_1984_2012_escalado <- escalar_precipitaciones(precipitaciones_19
 precipitaciones_2013_2022_escalado<-escalar_precipitaciones(precipitaciones_2013_2022)
 
 ```
-## Predicción}
+## Predicción
 
 \small
 ```{r, warning=FALSE}
@@ -516,22 +542,53 @@ predicciones_2013_2022 <- ajustar_y_predecir(
   orden = c(3,0,1),
   h_periodos = 10)
 
+
+#valores reales para los periodos 2013 2022
+valores_reales <- c(superficie_1984_2022[30:39])
+# Calcular el Error Cuadrático Medio (ECM)
+ecm_training <- accuracy(predicciones_2013_2022, valores_reales)[1,2]  # Extraer el ECM de la tabla de precisión
+ecm_test <- accuracy(predicciones_2013_2022, valores_reales)[2,2]
+
+
+
+# Gráfico de predicciones
 plot(
   predicciones_2013_2022, 
   main = "Comparación de Predicciones y Datos Reales \n 2012-2022 (70%-30%)",
   flty = 1, 
-  lwd = 2)
+  lwd = 2,
+  xaxt = "n" 
+)
+
+# Personalizar el eje x con los años
+axis(1, at = seq(1, length(superficie_1984_2022), by = 1), 
+     labels = seq(1984, 2022, by = 1), las = 2, cex.axis = 0.8)
+
+# Añadir el grid con una línea cada 1 unidad en ambos ejes
+grid(nx = length(superficie_1984_2022)+8, ny = NULL, col = "lightgray", 
+     lty = "dotted", lwd = 0.4, equilogs = TRUE)
 
 
 # Añadir los datos reales al gráfico
-# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
-# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
-points(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red", pch = 19)
-lines(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red")
+points(seq_along(superficie_1984_2022), superficie_1984_2022, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2022), superficie_1984_2022, col = "red")
 
-# Opcional: Añadir una leyenda
+# Añadir una leyenda con tamaño reducido
 legend("topleft", legend = c("Predicciones", "Datos Reales"), 
-       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+       col = c("blue", "red"), lty = c(1, 1), pch = c(NA, 19),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
+# Añadir el texto para ECM en el gráfico
+text(x = 0, y = 50.9, 
+     labels = paste("ECM Entrenamiento:", round(ecm_training, 2)), 
+     pos = 4, col = "black", cex = 0.8)
+
+text(x = 0, y =  51.4, 
+     labels = paste("ECM Testeo:", round(ecm_test, 2)), 
+     pos = 4, col = "black", cex = 0.8)
+
+
+
 
 ```
 
@@ -591,22 +648,57 @@ predicciones_2017_2022 <- ajustar_y_predecir(
   orden = c(3,0,1), 
   h_periodos = 6)
 
+
+
+#valores reales para los periodos 2017 2022
+valores_reales <- c(superficie_1984_2022[34:39])
+# Calcular el Error Cuadrático Medio (ECM)
+ecm_training <- accuracy(predicciones_2017_2022, valores_reales)[1,2]  # Extraer el ECM de la tabla de precisión
+ecm_test <- accuracy(predicciones_2017_2022, valores_reales)[2,2]
+
+
+
+
+
+# Gráfico de predicciones
 plot(
   predicciones_2017_2022, 
   main = "Comparación de Predicciones y Datos Reales \n 2016-2022 (80%-20%)",
   flty = 1, 
-  lwd = 2)
+  lwd = 2,
+  xaxt = "n" 
+)
 
+# Personalizar el eje x con los años
+axis(1, at = seq(1, length(superficie_1984_2022), by = 1), 
+     labels = seq(1984, 2022, by = 1), las = 2, cex.axis = 0.8)
+
+# Añadir el grid con una línea cada 1 unidad en ambos ejes
+grid(nx = length(superficie_1984_2022), ny = NULL, col = "lightgray", 
+     lty = "dotted", lwd = 0.4, equilogs = TRUE)
 
 # Añadir los datos reales al gráfico
-# Asume que el rango de fechas es el mismo para los datos reales y las predicciones
-# Cambia 'x' en `seq_along(real_data)` por el rango adecuado si es necesario
-points(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red", pch = 19)
-lines(seq_along(superficie_1984_2022) , superficie_1984_2022, col = "red")
+points(seq_along(superficie_1984_2022), superficie_1984_2022, col = "red", pch = 19)
+lines(seq_along(superficie_1984_2022), superficie_1984_2022, col = "red")
 
-# Opcional: Añadir una leyenda
 legend("topleft", legend = c("Predicciones", "Datos Reales"), 
-       col = c("black", "red"), lty = c(1, 1), pch = c(NA, 19))
+       col = c("blue", "red"), lty = c(1, 1), pch = c(NA, 19),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
+# Añadir el texto para ECM en el gráfico
+text(x = 0, y = 51.6, 
+     labels = paste("ECM Entrenamiento:", round(ecm_training, 2)), 
+     pos = 4, col = "black", cex = 0.8)
+
+text(x = 0, y =  52.1, 
+     labels = paste("ECM Testeo:", round(ecm_test, 2)), 
+     pos = 4, col = "black", cex = 0.8)
+
+
+
+
+
+
 
 
 
@@ -677,17 +769,36 @@ summary(predicciones_2023_2030_CD)
 prediccion_temperatura_2030_CD <- predicciones_2023_2030_CD$mean
 
 
-# Graficar la predicción
+# Gráfico de predicciones
 plot(
   predicciones_2023_2030_CD, 
   main = "Predicción Superficie hasta 2030 Con Dique", 
   flty = 1, 
-  lwd = 2)
+  lwd = 2,
+  xaxt = "n" 
+)
 
-legend("topleft", legend = c("Predicciones"), col = c("black"), lty = c(1), pch = c(NA))
+# Personalizar el eje x con los años
+axis(1, at = seq(1, length(superficie_1984_2022)+8, by = 1), 
+     labels = seq(1984, 2030, by = 1), las = 2, cex.axis = 0.8)
+
+# Añadir el grid con una línea cada 1 unidad en ambos ejes
+grid(nx = length(superficie_1984_2022)+8, ny = NULL, col = "lightgray", 
+     lty = "dotted", lwd = 0.4, equilogs = TRUE)
+
+lines(seq_along(superficie_1984_2022), superficie_1984_2022, col = "black")
+
+
+# Añadir una leyenda con tamaño reducido
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("blue", "black"), lty = c(1, 1), pch = c(NA, NA),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
 
 # Imprimir los valores de la predicción
 print(prediccion_temperatura_2030_CD)
+
+
 
 ```
 
@@ -760,18 +871,38 @@ summary(predicciones_2023_2030_SD)
 prediccion_temperatura_2030_SD <- predicciones_2023_2030_SD$mean
 
 
-
-# Graficar la predicción
+# Gráfico de predicciones
 plot(
   predicciones_2023_2030_SD, 
   main = "Predicción Superficie hasta 2030 Sin Dique", 
   flty = 1, 
-  lwd = 2)
+  lwd = 2,
+  xaxt = "n" 
+)
 
-legend("topleft", legend = c("Predicciones"), col = c("black"), lty = c(1), pch = c(NA))
+# Personalizar el eje x con los años
+axis(1, at = seq(1, length(superficie_1984_2022)+8, by = 1), 
+     labels = seq(1984, 2030, by = 1), las = 2, cex.axis = 0.8)
+
+# Añadir el grid con una línea cada 1 unidad en ambos ejes
+grid(nx = length(superficie_1984_2022)+8, ny = NULL, col = "lightgray", 
+     lty = "dotted", lwd = 0.4, equilogs = TRUE)
+
+lines(seq_along(superficie_1984_2022), superficie_1984_2022, col = "black")
+
+# Añadir una leyenda con tamaño reducido
+legend("topleft", legend = c("Predicciones", "Datos Reales"), 
+       col = c("blue", "black"), lty = c(1, 1), pch = c(NA, NA),
+       cex = 0.87, # Tamaño del texto de la leyenda
+       bty = "n") # Sin borde en la leyenda
+
 
 # Imprimir los valores de la predicción
 print(prediccion_temperatura_2030_SD)
+
+
+
+
 ```
 
 
@@ -790,7 +921,7 @@ Box.test(predicciones_2023_2030_SD, type = "Ljung-Box")
 ```
 
 
-En este caso, el valor-p dado por la prueba de hipotesis (0.01621) no es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo tienen autocorrelación significativa, lo que puede indicar que el modelo ARIMA no está capturando la estructura temporal de los datos, quedando dependencia en los residuos. Ahora bien, con base en las pruebas realizadas en el modelo con el 80% para predecir el 100% de los datos, podemos ver un buen ajuste (dentro de los intervalos de confianza establecidos para el 95% de confianza).
+En este caso, el valor-p dado por la prueba de hipotesis (0.01621) no es mayor a nivel de significancia establecido (0.05), por lo tanto, se puede concluir que los errores del modelo tienen autocorrelación significativa, lo que puede indicar que el modelo ARIMA no está capturando la estructura temporal de los datos, quedando dependencia en los residuos. Sin embargo, con base en las pruebas realizadas en el modelo con el 80% para predecir el 100% de los datos, podemos ver un buen ajuste (dentro de los intervalos de confianza establecidos para el 95% de confianza).
 
 
 
